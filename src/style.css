@@ -1,6 +1,14 @@
 :root {
-  color: #28312f;
-  background: #0d1c2a;
+  color: #183344;
+  background: #071a2b;
+  --night: #071a2b;
+  --ocean: #123b58;
+  --grid: #80adbb;
+  --land: #e5eff2;
+  --border: #9ebbc4;
+  --unvisited: #ee9b43;
+  --unvisited-dark: #b85d24;
+  --climbed: #3c8a70;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
 }
@@ -10,16 +18,16 @@ body { margin: 0; min-width: 320px; }
 button { font: inherit; }
 #app, #map { width: 100%; height: 100dvh; }
 #map { position: fixed; z-index: 0; inset: 0; }
-.fallback-map { display: block; width: 100%; height: 100%; background: #0d1c2a; cursor: grab; touch-action: none; }
+.fallback-map { display: block; width: 100%; height: 100%; background: var(--night); cursor: grab; touch-action: none; }
 .fallback-map:active { cursor: grabbing; }
-.fallback-globe { fill: #173047; stroke: #486273; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
-.fallback-graticule { fill: none; stroke: #66808d; stroke-width: .45; stroke-opacity: .34; vector-effect: non-scaling-stroke; }
-.fallback-country { fill: #e8e4d9; stroke: #b3b5ab; stroke-width: .55; vector-effect: non-scaling-stroke; }
-.fallback-range { cursor: pointer; fill: #b86a4b; fill-opacity: .7; stroke: #382c28; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.fallback-range:hover, .fallback-range:focus { fill: #e6a484; outline: none; }
-.fallback-range--climbed { fill: #547b66; }
-.fallback-range--parent { fill: #f8f2e6; fill-opacity: .16; stroke: #f8f2e6; }
-.fallback-peak { cursor: pointer; fill: #263b46; stroke: #f8f2e6; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.fallback-globe { fill: var(--ocean); stroke: #6b9caf; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.fallback-graticule { fill: none; stroke: var(--grid); stroke-width: .45; stroke-opacity: .38; vector-effect: non-scaling-stroke; }
+.fallback-country { fill: var(--land); stroke: var(--border); stroke-width: .55; vector-effect: non-scaling-stroke; }
+.fallback-range { cursor: pointer; fill: var(--unvisited); fill-opacity: .82; stroke: var(--unvisited-dark); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.fallback-range:hover, .fallback-range:focus { fill: #ffd28a; outline: none; }
+.fallback-range--climbed { fill: var(--climbed); stroke: #1f604f; }
+.fallback-range--parent { fill: #c5dfe7; fill-opacity: .2; stroke: #c5dfe7; }
+.fallback-peak { cursor: pointer; fill: #153b56; stroke: #ffffff; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .site-header { position: fixed; z-index: 2; top: 28px; left: 34px; color: #f8f2e6; pointer-events: none; }
 .wordmark { display: inline-block; color: inherit; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -.035em; text-decoration: none; pointer-events: auto; }
 .site-header p { margin: 4px 0 0; color: #d4d8d1; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -33,8 +41,8 @@ button { font: inherit; }
 .close-button { position: absolute; top: 11px; right: 11px; width: 34px; height: 34px; border: 0; border-radius: 50%; background: rgb(13 28 42 / .78); color: white; cursor: pointer; font-size: 1.55rem; line-height: 1; }
 .status { display: flex; align-items: center; gap: 7px; margin: 0 0 22px; font-size: .79rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .status span { width: 8px; height: 8px; border-radius: 50%; }
-.status--climbed { color: #3e6d56; }.status--climbed span { background: #547b66; }
-.status--unvisited { color: #925036; }.status--unvisited span { background: #b86a4b; }
+.status--climbed { color: #286851; }.status--climbed span { background: var(--climbed); }
+.status--unvisited { color: #a34d1c; }.status--unvisited span { background: var(--unvisited-dark); }
 dl { margin: 0; border-top: 1px solid #d9d5ca; }
 dl div { padding: 13px 0; border-bottom: 1px solid #d9d5ca; }
 dt { margin-bottom: 3px; color: #6f736d; font-size: .7rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
