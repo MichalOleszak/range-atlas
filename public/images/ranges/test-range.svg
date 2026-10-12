@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Test Range placeholder</title>
+  <desc id="desc">An abstract illustration of a mountain range for prototype use.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="#243947"/>
+      <stop offset="1" stop-color="#8a9e9e"/>
+    </linearGradient>
+    <linearGradient id="ridge" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#dde0d4"/>
+      <stop offset="1" stop-color="#65746e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <path d="M0 570 245 288l147 179L595 150l270 342 139-169 196 247v150H0Z" fill="url(#ridge)"/>
+  <path d="m595 150 114 144-63 22-51-166-59 188-62-40Z" fill="#f3f1e7" opacity=".9"/>
+  <text x="70" y="640" fill="#f8f6ef" font-family="ui-sans-serif,system-ui" font-size="28" letter-spacing="6">TEST RANGE · POC</text>
+</svg>

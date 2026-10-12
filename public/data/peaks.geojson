@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-peak",
+        "name": "Test Peak",
+        "elevationM": 3000,
+        "countries": ["CH"],
+        "rangeId": "test-range"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.65, 46.59]
+      }
+    }
+  ]
+}

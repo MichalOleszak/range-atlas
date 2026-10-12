@@ -1,0 +1,32 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-range",
+        "name": "Test Range",
+        "parentId": null,
+        "countries": ["CH"],
+        "status": "unvisited",
+        "highestPeakId": "test-peak",
+        "heroImage": "images/ranges/test-range.svg",
+        "heroAlt": "Illustrated placeholder for Test Range",
+        "isDemo": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [7.25, 46.35],
+            [7.78, 46.31],
+            [8.08, 46.62],
+            [7.74, 46.86],
+            [7.31, 46.72],
+            [7.25, 46.35]
+          ]
+        ]
+      }
+    }
+  ]
+}

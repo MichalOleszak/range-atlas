@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A personal atlas of mountain ranges and their highest summits." />
+    <title>Range Atlas</title>
+  </head>
+  <body>
+    <main id="app">
+      <div id="map" aria-label="Interactive globe showing mountain ranges"></div>
+      <header class="site-header">
+        <a class="wordmark" href="./" aria-label="Range Atlas home">Range Atlas</a>
+        <p>Mountain ranges, mapped personally.</p>
+      </header>
+      <section id="empty-state" class="map-note" aria-live="polite">
+        <span class="eyebrow">Explore</span>
+        <p>Select a mountain range to see its highest peak and climbing status.</p>
+      </section>
+      <aside id="range-panel" class="range-panel" aria-live="polite" aria-label="Range details" hidden></aside>
+      <p class="attribution">Country boundaries: Natural Earth</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
