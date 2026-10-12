@@ -11,6 +11,8 @@ button { font: inherit; }
 #app, #map { width: 100%; height: 100dvh; }
 #map { position: fixed; z-index: 0; inset: 0; }
 .fallback-map { display: block; width: 100%; height: 100%; background: #0d1c2a; }
+.fallback-globe { fill: #173047; stroke: #486273; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.fallback-graticule { fill: none; stroke: #66808d; stroke-width: .45; stroke-opacity: .34; vector-effect: non-scaling-stroke; }
 .fallback-country { fill: #e8e4d9; stroke: #b3b5ab; stroke-width: .55; vector-effect: non-scaling-stroke; }
 .fallback-range { cursor: pointer; fill: #b86a4b; fill-opacity: .7; stroke: #382c28; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .fallback-range:hover, .fallback-range:focus { fill: #e6a484; outline: none; }

@@ -9,6 +9,7 @@ import {
   type PaddingOptions,
 } from 'maplibre-gl';
 import { feature } from 'topojson-client';
+import { geoGraticule10, geoOrthographic, geoPath } from 'd3-geo';
 import countriesTopology from 'world-atlas/countries-110m.json';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
@@ -39,7 +40,8 @@ const topLevelRangeIds = ranges.features
 const countriesObject = countriesTopology.objects.countries;
 const countries = feature(countriesTopology as never, countriesObject as never) as unknown as GeoJSON.FeatureCollection;
 let fallbackSelectedRangeId: string | null = null;
-const map = supportsWebGl2() ? new MapLibreMap({
+const useSvgGlobe = new URLSearchParams(window.location.search).get('renderer') !== 'webgl';
+const map = useSvgGlobe ? null : new MapLibreMap({
   container: mapContainer,
   style: {
     version: 8,
@@ -52,7 +54,7 @@ const map = supportsWebGl2() ? new MapLibreMap({
   minZoom: 0.3,
   maxZoom: 9,
   attributionControl: false,
-}) : null;
+});
 
 if (map) {
   map.addControl(new NavigationControl({ showCompass: true }), 'bottom-right');
@@ -220,6 +222,13 @@ function updateVisibleLayers(selectedId: string | null): void {
 function renderFallbackMap(): void {
   const width = 1200;
   const height = 600;
+  const projection = geoOrthographic()
+    .translate([width / 2, height / 2])
+    .scale(268)
+    .rotate([-10, -26])
+    .clipAngle(90)
+    .precision(0.25);
+  const pathGenerator = geoPath(projection);
   const selected = fallbackSelectedRangeId ? rangesById.get(fallbackSelectedRangeId) : undefined;
   const childIds = selected
     ? ranges.features.filter((range) => range.properties.parentId === selected.properties.id).map((range) => range.properties.id)
@@ -235,10 +244,19 @@ function renderFallbackMap(): void {
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', 'World map showing mountain ranges');
 
+  const sphere = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
+  sphere.setAttribute('d', pathGenerator({ type: 'Sphere' }) ?? '');
+  sphere.setAttribute('class', 'fallback-globe');
+  svg.append(sphere);
+  const graticule = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
+  graticule.setAttribute('d', pathGenerator(geoGraticule10()) ?? '');
+  graticule.setAttribute('class', 'fallback-graticule');
+  svg.append(graticule);
+
   for (const country of countries.features) {
     if (!country.geometry) continue;
     const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
-    path.setAttribute('d', geometryPath(country.geometry, width, height));
+    path.setAttribute('d', pathGenerator(country) ?? '');
     path.setAttribute('class', 'fallback-country');
     svg.append(path);
   }
@@ -246,7 +264,7 @@ function renderFallbackMap(): void {
     const id = range.properties.id;
     if (!visibleIds.has(id)) continue;
     const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
-    path.setAttribute('d', geometryPath(range.geometry, width, height));
+    path.setAttribute('d', pathGenerator(range) ?? '');
     path.setAttribute('class', id === parentId ? 'fallback-range fallback-range--parent' : `fallback-range fallback-range--${range.properties.status}`);
     path.setAttribute('tabindex', '0');
     path.setAttribute('aria-label', `View ${range.properties.name}`);
@@ -259,7 +277,9 @@ function renderFallbackMap(): void {
   for (const peak of peaks.features) {
     if (!visibleIds.has(peak.properties.rangeId)) continue;
     const [longitude, latitude] = (peak.geometry as GeoJSON.Point).coordinates as [number, number];
-    const [x, y] = projectCoordinate(longitude, latitude, width, height);
+    const position = projection([longitude, latitude]);
+    if (!position) continue;
+    const [x, y] = position;
     const point = document.createElementNS(svg.namespaceURI, 'circle');
     point.setAttribute('cx', String(x));
     point.setAttribute('cy', String(y));
@@ -271,28 +291,6 @@ function renderFallbackMap(): void {
     svg.append(point);
   }
   mapContainer.append(svg);
-}
-
-function geometryPath(geometry: GeoJSON.Geometry, width: number, height: number): string {
-  if (geometry.type === 'Polygon') return polygonPath(geometry.coordinates, width, height);
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates.map((polygon) => polygonPath(polygon, width, height)).join('');
-  return '';
-}
-
-function polygonPath(coordinates: number[][][], width: number, height: number): string {
-  return coordinates.map((ring) => ring.map(([longitude, latitude], index) => {
-    const [x, y] = projectCoordinate(longitude, latitude, width, height);
-    return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join('') + 'Z').join('');
-}
-
-function projectCoordinate(longitude: number, latitude: number, width: number, height: number): [number, number] {
-  return [((longitude + 180) / 360) * width, ((90 - latitude) / 180) * height];
-}
-
-function supportsWebGl2(): boolean {
-  const canvas = document.createElement('canvas');
-  return Boolean(canvas.getContext('webgl2'));
 }
 
 function rangeIdFilter(ids: string[]): FilterSpecification {
