@@ -332,7 +332,7 @@ function installGlobeInteractions(svg: SVGSVGElement): void {
   });
   svg.addEventListener('wheel', (event) => {
     event.preventDefault();
-    globeScale = clamp(globeScale * (event.deltaY < 0 ? 1.12 : 0.89), 190, 980);
+    globeScale = clamp(globeScale * (event.deltaY < 0 ? 1.16 : 0.86), 190, 8000);
     renderFallbackMap();
   }, { passive: false });
 }
@@ -346,7 +346,7 @@ function focusFallbackRange(range: FeatureCollection<RangeProperties>['features'
   if (coordinates.length === 0) return;
   const [longitude, latitude] = coordinates.reduce<[number, number]>((sum, [currentLongitude, currentLatitude]) => [sum[0] + currentLongitude, sum[1] + currentLatitude], [0, 0]);
   globeRotation = [-longitude / coordinates.length, -latitude / coordinates.length];
-  globeScale = 620;
+  globeScale = 1600;
 }
 
 function clamp(value: number, min: number, max: number): number {
