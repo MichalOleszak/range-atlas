@@ -27,6 +27,58 @@
           ]
         ]
       }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-north-ridge",
+        "name": "Test North Ridge",
+        "parentId": "test-range",
+        "countries": ["CH"],
+        "status": "climbed",
+        "highestPeakId": "test-north-peak",
+        "heroImage": "images/ranges/test-north-ridge.svg",
+        "heroAlt": "Illustrated placeholder for Test North Ridge",
+        "isDemo": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [6.4, 46.7],
+            [6.95, 47.45],
+            [8.35, 47.5],
+            [8.85, 46.72],
+            [6.4, 46.7]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-south-ridge",
+        "name": "Test South Ridge",
+        "parentId": "test-range",
+        "countries": ["CH"],
+        "status": "unvisited",
+        "highestPeakId": "test-south-peak",
+        "heroImage": "images/ranges/test-south-ridge.svg",
+        "heroAlt": "Illustrated placeholder for Test South Ridge",
+        "isDemo": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [6.8, 45.72],
+            [6.75, 46.42],
+            [8.25, 46.52],
+            [9.15, 45.78],
+            [6.8, 45.72]
+          ]
+        ]
+      }
     }
   ]
 }

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Test South Ridge placeholder</title>
+  <desc id="desc">An abstract illustration of a southern mountain ridge for prototype use.</desc>
+  <defs><linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#31444a"/><stop offset="1" stop-color="#c1b888"/></linearGradient></defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <path d="M0 585 190 370l176 145 159-250 206 276 160-170 309 214v136H0Z" fill="#c9d3c8"/>
+  <path d="m525 265 91 133-66-27-25-106-55 146-63-40Z" fill="#faf8ed" opacity=".9"/>
+  <text x="70" y="640" fill="#f8f6ef" font-family="ui-sans-serif,system-ui" font-size="28" letter-spacing="6">TEST SOUTH RIDGE · POC</text>
+</svg>

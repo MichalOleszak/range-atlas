@@ -14,6 +14,34 @@
         "type": "Point",
         "coordinates": [7.65, 46.59]
       }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-north-peak",
+        "name": "North Testhorn",
+        "elevationM": 2840,
+        "countries": ["CH"],
+        "rangeId": "test-north-ridge"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.56, 47.1]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "test-south-peak",
+        "name": "South Testhorn",
+        "elevationM": 2675,
+        "countries": ["CH"],
+        "rangeId": "test-south-ridge"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [7.95, 46.08]
+      }
     }
   ]
 }

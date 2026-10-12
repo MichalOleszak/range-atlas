@@ -372,8 +372,10 @@ function peakRangeFilter(rangeIds: string[]): FilterSpecification {
 
 function renderRangePanel(range: RangeProperties, peak: PeakProperties): string {
   const parent = range.parentId ? rangesById.get(range.parentId)?.properties : undefined;
+  const subrangeCount = ranges.features.filter((item) => item.properties.parentId === range.id).length;
   const status = range.status === 'climbed' ? 'Climbed' : 'Unvisited';
   const demo = range.isDemo ? '<p class="prototype-note">Prototype content — replace this test range with your first real entry.</p>' : '';
+  const subranges = subrangeCount ? `<p class="subrange-note">${subrangeCount} subrange${subrangeCount === 1 ? '' : 's'} shown on the map — select one to explore it.</p>` : '';
   return `
     <button class="close-button" type="button" aria-label="Close range details" data-close-panel>×</button>
     <img class="hero-image" src="${baseUrl}${escapeHtml(range.heroImage)}" alt="${escapeHtml(range.heroAlt)}" />
@@ -387,6 +389,7 @@ function renderRangePanel(range: RangeProperties, peak: PeakProperties): string 
         <div><dt>Range countr${range.countries.length > 1 ? 'ies' : 'y'}</dt><dd>${formatCountries(range.countries)}</dd></div>
         ${parent ? `<div><dt>Parent range</dt><dd><button class="link-button" type="button" data-parent-id="${escapeHtml(parent.id)}">${escapeHtml(parent.name)}</button></dd></div>` : ''}
       </dl>
+      ${subranges}
       ${demo}
     </div>
   `;

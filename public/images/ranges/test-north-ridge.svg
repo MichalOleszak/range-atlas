@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Test North Ridge placeholder</title>
+  <desc id="desc">An abstract illustration of a northern mountain ridge for prototype use.</desc>
+  <defs><linearGradient id="sky" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#193b51"/><stop offset="1" stop-color="#9eb7bb"/></linearGradient></defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <path d="M0 600 210 320l146 165 206-310 164 290 190-224 284 359v120H0Z" fill="#dbe4dc"/>
+  <path d="m562 175 78 117-65-25-13-92-52 134-58-36Z" fill="#ffffff" opacity=".86"/>
+  <text x="70" y="640" fill="#f8f6ef" font-family="ui-sans-serif,system-ui" font-size="28" letter-spacing="6">TEST NORTH RIDGE · POC</text>
+</svg>
