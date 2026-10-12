@@ -2,6 +2,7 @@ import {
   Map as MapLibreMap,
   NavigationControl,
   type LngLatBoundsLike,
+  type FilterSpecification,
   type MapGeoJSONFeature,
   type MapLayerMouseEvent,
   type PaddingOptions,
@@ -30,6 +31,9 @@ const [ranges, peaks] = await Promise.all([
 
 const rangesById = new globalThis.Map(ranges.features.map((range) => [range.properties.id, range]));
 const peaksById = new globalThis.Map(peaks.features.map((peak) => [peak.properties.id, peak]));
+const topLevelRangeIds = ranges.features
+  .filter((range) => range.properties.parentId === null)
+  .map((range) => range.properties.id);
 const map = new MapLibreMap({
   container: mapElement,
   style: {
@@ -67,9 +71,24 @@ map.on('load', () => {
   map.addSource('ranges', { type: 'geojson', data: ranges });
   map.addSource('peaks', { type: 'geojson', data: peaks });
   map.addLayer({
+    id: 'parent-context-fill',
+    type: 'fill',
+    source: 'ranges',
+    filter: rangeIdFilter([]),
+    paint: { 'fill-color': '#f8f2e6', 'fill-opacity': 0.14 },
+  });
+  map.addLayer({
+    id: 'parent-context-outline',
+    type: 'line',
+    source: 'ranges',
+    filter: rangeIdFilter([]),
+    paint: { 'line-color': '#f8f2e6', 'line-width': 1.1, 'line-opacity': 0.55 },
+  });
+  map.addLayer({
     id: 'range-fill',
     type: 'fill',
     source: 'ranges',
+    filter: rangeIdFilter(topLevelRangeIds),
     paint: {
       'fill-color': ['match', ['get', 'status'], 'climbed', '#547b66', '#b86a4b'],
       'fill-opacity': 0.58,
@@ -79,6 +98,7 @@ map.on('load', () => {
     id: 'range-outline',
     type: 'line',
     source: 'ranges',
+    filter: rangeIdFilter(topLevelRangeIds),
     paint: { 'line-color': '#382c28', 'line-width': 1.25, 'line-opacity': 0.9 },
   });
   map.addLayer({
@@ -92,12 +112,14 @@ map.on('load', () => {
     id: 'peak-marker-halo',
     type: 'circle',
     source: 'peaks',
+    filter: peakRangeFilter(topLevelRangeIds),
     paint: { 'circle-radius': 7, 'circle-color': '#f8f2e6', 'circle-opacity': 0.95 },
   });
   map.addLayer({
     id: 'peak-marker',
     type: 'circle',
     source: 'peaks',
+    filter: peakRangeFilter(topLevelRangeIds),
     paint: { 'circle-radius': 4.2, 'circle-color': '#263b46', 'circle-stroke-color': '#10212a', 'circle-stroke-width': 1 },
   });
 
@@ -128,6 +150,7 @@ function selectRange(rangeId: string, fly: boolean): void {
   const peak = peaksById.get(range.properties.highestPeakId);
   if (!peak) return;
 
+  updateVisibleLayers(rangeId);
   map.setFilter('selected-range-outline', ['==', ['get', 'id'], rangeId]);
   emptyStateElement.hidden = true;
   panelElement.hidden = false;
@@ -148,12 +171,40 @@ function selectRange(rangeId: string, fly: boolean): void {
 }
 
 function clearSelection(): void {
+  updateVisibleLayers(null);
   map.setFilter('selected-range-outline', ['==', ['get', 'id'], '']);
   panelElement.hidden = true;
   emptyStateElement.hidden = false;
   const url = new URL(window.location.href);
   url.searchParams.delete('range');
   window.history.replaceState({}, '', url);
+}
+
+function updateVisibleLayers(selectedId: string | null): void {
+  const selected = selectedId ? rangesById.get(selectedId) : undefined;
+  const childIds = selected
+    ? ranges.features
+      .filter((range) => range.properties.parentId === selected.properties.id)
+      .map((range) => range.properties.id)
+    : [];
+  const primaryIds = selected ? [selected.properties.id, ...childIds] : topLevelRangeIds;
+  const parentId = selected?.properties.parentId ?? null;
+  const peakRangeIds = parentId ? [parentId, ...primaryIds] : primaryIds;
+
+  map.setFilter('range-fill', rangeIdFilter(primaryIds));
+  map.setFilter('range-outline', rangeIdFilter(primaryIds));
+  map.setFilter('parent-context-fill', rangeIdFilter(parentId ? [parentId] : []));
+  map.setFilter('parent-context-outline', rangeIdFilter(parentId ? [parentId] : []));
+  map.setFilter('peak-marker-halo', peakRangeFilter(peakRangeIds));
+  map.setFilter('peak-marker', peakRangeFilter(peakRangeIds));
+}
+
+function rangeIdFilter(ids: string[]): FilterSpecification {
+  return ['in', ['get', 'id'], ['literal', ids]];
+}
+
+function peakRangeFilter(rangeIds: string[]): FilterSpecification {
+  return ['in', ['get', 'rangeId'], ['literal', rangeIds]];
 }
 
 function renderRangePanel(range: RangeProperties, peak: PeakProperties): string {
