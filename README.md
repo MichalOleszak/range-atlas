@@ -6,6 +6,10 @@ The map is a static GitHub Pages site. It has no external map-tile or WebGL
 dependency: the globe and country boundaries are rendered locally as SVG, while
 range geometry, summits, and photos are maintained in this repository.
 
+Drag the globe to rotate it and use a trackpad pinch or mouse wheel to zoom.
+Selecting a range or its highest-peak marker centres and zooms the globe on that
+range.
+
 ## Run locally
 
 ```bash

@@ -40,6 +40,8 @@ const topLevelRangeIds = ranges.features
 const countriesObject = countriesTopology.objects.countries;
 const countries = feature(countriesTopology as never, countriesObject as never) as unknown as GeoJSON.FeatureCollection;
 let fallbackSelectedRangeId: string | null = null;
+let globeRotation: [number, number] = [-10, -26];
+let globeScale = 268;
 const useSvgGlobe = new URLSearchParams(window.location.search).get('renderer') !== 'webgl';
 const map = useSvgGlobe ? null : new MapLibreMap({
   container: mapContainer,
@@ -150,7 +152,9 @@ if (map) {
   if (requestedRange && rangesById.has(requestedRange)) selectRange(requestedRange, false);
   });
 } else {
-  renderFallbackMap();
+  const requestedRange = new URLSearchParams(window.location.search).get('range');
+  if (requestedRange && rangesById.has(requestedRange)) selectRange(requestedRange, false);
+  else renderFallbackMap();
 }
 
 function selectRange(rangeId: string, fly: boolean): void {
@@ -164,6 +168,7 @@ function selectRange(rangeId: string, fly: boolean): void {
     updateVisibleLayers(rangeId);
     map.setFilter('selected-range-outline', ['==', ['get', 'id'], rangeId]);
   } else {
+    if (fly) focusFallbackRange(range);
     renderFallbackMap();
   }
   emptyStateElement.hidden = true;
@@ -224,8 +229,8 @@ function renderFallbackMap(): void {
   const height = 600;
   const projection = geoOrthographic()
     .translate([width / 2, height / 2])
-    .scale(268)
-    .rotate([-10, -26])
+    .scale(globeScale)
+    .rotate(globeRotation)
     .clipAngle(90)
     .precision(0.25);
   const pathGenerator = geoPath(projection);
@@ -241,8 +246,9 @@ function renderFallbackMap(): void {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.classList.add('fallback-map');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'World map showing mountain ranges');
+  svg.setAttribute('role', 'application');
+  svg.setAttribute('aria-label', 'Interactive globe showing mountain ranges. Drag to rotate and scroll to zoom.');
+  installGlobeInteractions(svg);
 
   const sphere = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
   sphere.setAttribute('d', pathGenerator({ type: 'Sphere' }) ?? '');
@@ -291,6 +297,51 @@ function renderFallbackMap(): void {
     svg.append(point);
   }
   mapContainer.append(svg);
+}
+
+function installGlobeInteractions(svg: SVGSVGElement): void {
+  svg.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startRotation: [number, number] = [...globeRotation];
+    let moved = false;
+    const move = (pointerEvent: PointerEvent) => {
+      const deltaX = pointerEvent.clientX - startX;
+      const deltaY = pointerEvent.clientY - startY;
+      moved ||= Math.abs(deltaX) + Math.abs(deltaY) > 3;
+      globeRotation = [startRotation[0] + deltaX * 0.28, clamp(startRotation[1] - deltaY * 0.28, -78, 78)];
+      renderFallbackMap();
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      if (moved) window.setTimeout(() => { moved = false; }, 0);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end, { once: true });
+  });
+  svg.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    globeScale = clamp(globeScale * (event.deltaY < 0 ? 1.12 : 0.89), 190, 980);
+    renderFallbackMap();
+  }, { passive: false });
+}
+
+function focusFallbackRange(range: FeatureCollection<RangeProperties>['features'][number]): void {
+  const coordinates = range.geometry.type === 'Polygon'
+    ? range.geometry.coordinates.flat(1)
+    : range.geometry.type === 'MultiPolygon'
+      ? range.geometry.coordinates.flat(2)
+      : [];
+  if (coordinates.length === 0) return;
+  const [longitude, latitude] = coordinates.reduce<[number, number]>((sum, [currentLongitude, currentLatitude]) => [sum[0] + currentLongitude, sum[1] + currentLatitude], [0, 0]);
+  globeRotation = [-longitude / coordinates.length, -latitude / coordinates.length];
+  globeScale = 620;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }
 
 function rangeIdFilter(ids: string[]): FilterSpecification {
