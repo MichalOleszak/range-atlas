@@ -44,6 +44,10 @@ Coordinates are standard GeoJSON longitude/latitude (`[longitude, latitude]`)
 in WGS 84. Parent polygons do not need to be the exact union of their
 subranges; draw the extent that best represents the range.
 
+Export ordinary GeoJSON from geojson.io rather than hand-reversing polygon
+points. Range Atlas defensively corrects a polygon that would otherwise render
+as its globe-spanning inverse, but a normal GeoJSON exterior ring is preferred.
+
 ### Range properties
 
 ```json

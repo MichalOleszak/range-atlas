@@ -9,11 +9,11 @@ import {
   type PaddingOptions,
 } from 'maplibre-gl';
 import { feature } from 'topojson-client';
-import { geoGraticule10, geoOrthographic, geoPath } from 'd3-geo';
+import { geoArea, geoGraticule10, geoOrthographic, geoPath } from 'd3-geo';
 import countriesTopology from 'world-atlas/countries-110m.json';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
-import type { FeatureCollection, PeakProperties, RangeProperties } from './types';
+import type { FeatureCollection, GeoJsonFeature, PeakProperties, RangeProperties } from './types';
 
 const baseUrl = import.meta.env.BASE_URL;
 const mapElement = document.querySelector<HTMLDivElement>('#map');
@@ -253,10 +253,13 @@ function renderFallbackMap(): void {
   const sphere = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
   sphere.setAttribute('d', pathGenerator({ type: 'Sphere' }) ?? '');
   sphere.setAttribute('class', 'fallback-globe');
+  sphere.style.fill = '#071a2b';
+  sphere.style.stroke = '#48646a';
   svg.append(sphere);
   const graticule = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
   graticule.setAttribute('d', pathGenerator(geoGraticule10()) ?? '');
   graticule.setAttribute('class', 'fallback-graticule');
+  graticule.style.stroke = '#526a6b';
   svg.append(graticule);
 
   for (const country of countries.features) {
@@ -264,14 +267,18 @@ function renderFallbackMap(): void {
     const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
     path.setAttribute('d', pathGenerator(country) ?? '');
     path.setAttribute('class', 'fallback-country');
+    path.style.fill = '#b8c6be';
+    path.style.stroke = '#81958d';
     svg.append(path);
   }
   for (const range of ranges.features) {
     const id = range.properties.id;
     if (!visibleIds.has(id)) continue;
     const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
-    path.setAttribute('d', pathGenerator(range) ?? '');
+    path.setAttribute('d', pathGenerator(normaliseSphericalPolygon(range)) ?? '');
     path.setAttribute('class', id === parentId ? 'fallback-range fallback-range--parent' : `fallback-range fallback-range--${range.properties.status}`);
+    path.style.fill = id === parentId ? '#d8e5de' : range.properties.status === 'climbed' ? '#4f9378' : '#e6a24d';
+    path.style.stroke = id === parentId ? '#d8e5de' : range.properties.status === 'climbed' ? '#2f735d' : '#a85e21';
     path.setAttribute('tabindex', '0');
     path.setAttribute('aria-label', `View ${range.properties.name}`);
     path.addEventListener('click', () => selectRange(id, true));
@@ -286,11 +293,13 @@ function renderFallbackMap(): void {
     const position = projection([longitude, latitude]);
     if (!position) continue;
     const [x, y] = position;
-    const point = document.createElementNS(svg.namespaceURI, 'circle');
+    const point = document.createElementNS(svg.namespaceURI, 'circle') as SVGCircleElement;
     point.setAttribute('cx', String(x));
     point.setAttribute('cy', String(y));
     point.setAttribute('r', '5');
     point.setAttribute('class', 'fallback-peak');
+    point.style.fill = '#153b56';
+    point.style.stroke = '#ffffff';
     point.setAttribute('tabindex', '0');
     point.setAttribute('aria-label', `View ${peak.properties.name}`);
     point.addEventListener('click', () => selectRange(peak.properties.rangeId, true));
@@ -342,6 +351,15 @@ function focusFallbackRange(range: FeatureCollection<RangeProperties>['features'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+function normaliseSphericalPolygon(item: GeoJsonFeature<RangeProperties>): GeoJSON.Feature {
+  const geometry = item.geometry;
+  if ((geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') || geoArea(item as never) <= 2 * Math.PI) return item as GeoJSON.Feature;
+  if (geometry.type === 'Polygon') {
+    return { ...item, geometry: { ...geometry, coordinates: geometry.coordinates.map((ring) => [...ring].reverse()) } } as GeoJSON.Feature;
+  }
+  return { ...item, geometry: { ...geometry, coordinates: geometry.coordinates.map((polygon) => polygon.map((ring) => [...ring].reverse())) } } as GeoJSON.Feature;
 }
 
 function rangeIdFilter(ids: string[]): FilterSpecification {
