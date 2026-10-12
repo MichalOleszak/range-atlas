@@ -1,14 +1,14 @@
 :root {
-  color: #183344;
-  background: #071a2b;
-  --night: #071a2b;
-  --ocean: #123b58;
-  --grid: #80adbb;
-  --land: #e5eff2;
-  --border: #9ebbc4;
-  --unvisited: #ee9b43;
-  --unvisited-dark: #b85d24;
-  --climbed: #3c8a70;
+  color: #1e2926;
+  background: #0d0f10;
+  --night: #0d0f10;
+  --ocean: #071a2b;
+  --grid: #526a6b;
+  --land: #b8c6be;
+  --border: #81958d;
+  --unvisited: #e6a24d;
+  --unvisited-dark: #a85e21;
+  --climbed: #4f9378;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
 }
@@ -20,13 +20,13 @@ button { font: inherit; }
 #map { position: fixed; z-index: 0; inset: 0; }
 .fallback-map { display: block; width: 100%; height: 100%; background: var(--night); cursor: grab; touch-action: none; }
 .fallback-map:active { cursor: grabbing; }
-.fallback-globe { fill: var(--ocean); stroke: #6b9caf; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.fallback-globe { fill: var(--ocean); stroke: #48646a; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .fallback-graticule { fill: none; stroke: var(--grid); stroke-width: .45; stroke-opacity: .38; vector-effect: non-scaling-stroke; }
 .fallback-country { fill: var(--land); stroke: var(--border); stroke-width: .55; vector-effect: non-scaling-stroke; }
 .fallback-range { cursor: pointer; fill: var(--unvisited); fill-opacity: .82; stroke: var(--unvisited-dark); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.fallback-range:hover, .fallback-range:focus { fill: #ffd28a; outline: none; }
+.fallback-range:hover, .fallback-range:focus { fill: #ffd18c; outline: none; }
 .fallback-range--climbed { fill: var(--climbed); stroke: #1f604f; }
-.fallback-range--parent { fill: #c5dfe7; fill-opacity: .2; stroke: #c5dfe7; }
+.fallback-range--parent { fill: #d8e5de; fill-opacity: .2; stroke: #d8e5de; }
 .fallback-peak { cursor: pointer; fill: #153b56; stroke: #ffffff; stroke-width: 2; vector-effect: non-scaling-stroke; }
 .site-header { position: fixed; z-index: 2; top: 28px; left: 34px; color: #f8f2e6; pointer-events: none; }
 .wordmark { display: inline-block; color: inherit; font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 600; letter-spacing: -.035em; text-decoration: none; pointer-events: auto; }
