@@ -117,5 +117,5 @@ remove them when adding real content.
 
 ## Attribution
 
-Country boundaries are derived from [Natural Earth](https://www.naturalearthdata.com/),
-public-domain map data bundled through the `world-atlas` package.
+Country boundaries are derived from [Natural Earth](https://www.naturalearthdata.com/)
+at 1:50m scale, public-domain map data bundled through the `world-atlas` package.

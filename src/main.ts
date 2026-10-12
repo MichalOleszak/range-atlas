@@ -10,7 +10,7 @@ import {
 } from 'maplibre-gl';
 import { feature } from 'topojson-client';
 import { geoArea, geoGraticule10, geoOrthographic, geoPath } from 'd3-geo';
-import countriesTopology from 'world-atlas/countries-110m.json';
+import countriesTopology from 'world-atlas/countries-50m.json';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
 import type { FeatureCollection, GeoJsonFeature, PeakProperties, RangeProperties } from './types';
