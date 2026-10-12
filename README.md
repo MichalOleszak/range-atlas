@@ -4,7 +4,9 @@ A personal, globe-based atlas of mountain ranges and their highest summits.
 
 The map is a static GitHub Pages site. It has no external map-tile dependency:
 country boundaries are bundled with the application, while range geometry,
-summits, and photos are maintained in this repository.
+summits, and photos are maintained in this repository. WebGL2-capable browsers
+receive the interactive globe; other browsers receive an accessible SVG world-map
+fallback rather than a blank canvas.
 
 ## Run locally
 

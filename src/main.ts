@@ -1,6 +1,7 @@
 import {
   Map as MapLibreMap,
   NavigationControl,
+  type StyleSpecification,
   type LngLatBoundsLike,
   type FilterSpecification,
   type MapGeoJSONFeature,
@@ -23,6 +24,7 @@ if (!mapElement || !panel || !emptyState) {
 }
 const panelElement = panel;
 const emptyStateElement = emptyState;
+const mapContainer = mapElement;
 
 const [ranges, peaks] = await Promise.all([
   loadGeoJson<RangeProperties>('data/ranges.geojson'),
@@ -34,26 +36,28 @@ const peaksById = new globalThis.Map(peaks.features.map((peak) => [peak.properti
 const topLevelRangeIds = ranges.features
   .filter((range) => range.properties.parentId === null)
   .map((range) => range.properties.id);
-const map = new MapLibreMap({
-  container: mapElement,
+const countriesObject = countriesTopology.objects.countries;
+const countries = feature(countriesTopology as never, countriesObject as never) as unknown as GeoJSON.FeatureCollection;
+let fallbackSelectedRangeId: string | null = null;
+const map = supportsWebGl2() ? new MapLibreMap({
+  container: mapContainer,
   style: {
     version: 8,
+    projection: { type: 'globe' },
     sources: {},
     layers: [{ id: 'ocean', type: 'background', paint: { 'background-color': '#0d1c2a' } }],
-  },
+  } as StyleSpecification,
   center: [10, 26],
   zoom: 0.65,
   minZoom: 0.3,
   maxZoom: 9,
   attributionControl: false,
-});
+}) : null;
 
-map.addControl(new NavigationControl({ showCompass: true }), 'bottom-right');
+if (map) {
+  map.addControl(new NavigationControl({ showCompass: true }), 'bottom-right');
 
-map.on('load', () => {
-  map.setProjection({ type: 'globe' });
-  const countriesObject = countriesTopology.objects.countries;
-  const countries = feature(countriesTopology as never, countriesObject as never) as unknown as GeoJSON.FeatureCollection;
+  map.on('load', () => {
 
   map.addSource('countries', { type: 'geojson', data: countries });
   map.addLayer({
@@ -142,7 +146,10 @@ map.on('load', () => {
 
   const requestedRange = new URLSearchParams(window.location.search).get('range');
   if (requestedRange && rangesById.has(requestedRange)) selectRange(requestedRange, false);
-});
+  });
+} else {
+  renderFallbackMap();
+}
 
 function selectRange(rangeId: string, fly: boolean): void {
   const range = rangesById.get(rangeId);
@@ -150,8 +157,13 @@ function selectRange(rangeId: string, fly: boolean): void {
   const peak = peaksById.get(range.properties.highestPeakId);
   if (!peak) return;
 
-  updateVisibleLayers(rangeId);
-  map.setFilter('selected-range-outline', ['==', ['get', 'id'], rangeId]);
+  fallbackSelectedRangeId = rangeId;
+  if (map) {
+    updateVisibleLayers(rangeId);
+    map.setFilter('selected-range-outline', ['==', ['get', 'id'], rangeId]);
+  } else {
+    renderFallbackMap();
+  }
   emptyStateElement.hidden = true;
   panelElement.hidden = false;
   panelElement.innerHTML = renderRangePanel(range.properties, peak.properties);
@@ -164,15 +176,20 @@ function selectRange(rangeId: string, fly: boolean): void {
   const url = new URL(window.location.href);
   url.searchParams.set('range', rangeId);
   window.history.replaceState({}, '', url);
-  if (fly) {
+  if (fly && map) {
     const bounds = getBounds(range.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon);
     map.fitBounds(bounds, { padding: panelPadding(), maxZoom: 6.3, duration: 1050 });
   }
 }
 
 function clearSelection(): void {
-  updateVisibleLayers(null);
-  map.setFilter('selected-range-outline', ['==', ['get', 'id'], '']);
+  fallbackSelectedRangeId = null;
+  if (map) {
+    updateVisibleLayers(null);
+    map.setFilter('selected-range-outline', ['==', ['get', 'id'], '']);
+  } else {
+    renderFallbackMap();
+  }
   panelElement.hidden = true;
   emptyStateElement.hidden = false;
   const url = new URL(window.location.href);
@@ -181,6 +198,7 @@ function clearSelection(): void {
 }
 
 function updateVisibleLayers(selectedId: string | null): void {
+  if (!map) return;
   const selected = selectedId ? rangesById.get(selectedId) : undefined;
   const childIds = selected
     ? ranges.features
@@ -197,6 +215,84 @@ function updateVisibleLayers(selectedId: string | null): void {
   map.setFilter('parent-context-outline', rangeIdFilter(parentId ? [parentId] : []));
   map.setFilter('peak-marker-halo', peakRangeFilter(peakRangeIds));
   map.setFilter('peak-marker', peakRangeFilter(peakRangeIds));
+}
+
+function renderFallbackMap(): void {
+  const width = 1200;
+  const height = 600;
+  const selected = fallbackSelectedRangeId ? rangesById.get(fallbackSelectedRangeId) : undefined;
+  const childIds = selected
+    ? ranges.features.filter((range) => range.properties.parentId === selected.properties.id).map((range) => range.properties.id)
+    : [];
+  const primaryIds = selected ? [selected.properties.id, ...childIds] : topLevelRangeIds;
+  const parentId = selected?.properties.parentId ?? null;
+  const visibleIds = new Set([...primaryIds, ...(parentId ? [parentId] : [])]);
+
+  mapContainer.replaceChildren();
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.classList.add('fallback-map');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'World map showing mountain ranges');
+
+  for (const country of countries.features) {
+    if (!country.geometry) continue;
+    const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
+    path.setAttribute('d', geometryPath(country.geometry, width, height));
+    path.setAttribute('class', 'fallback-country');
+    svg.append(path);
+  }
+  for (const range of ranges.features) {
+    const id = range.properties.id;
+    if (!visibleIds.has(id)) continue;
+    const path = document.createElementNS(svg.namespaceURI, 'path') as SVGPathElement;
+    path.setAttribute('d', geometryPath(range.geometry, width, height));
+    path.setAttribute('class', id === parentId ? 'fallback-range fallback-range--parent' : `fallback-range fallback-range--${range.properties.status}`);
+    path.setAttribute('tabindex', '0');
+    path.setAttribute('aria-label', `View ${range.properties.name}`);
+    path.addEventListener('click', () => selectRange(id, true));
+    path.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'Enter' || event.key === ' ') selectRange(id, true);
+    });
+    svg.append(path);
+  }
+  for (const peak of peaks.features) {
+    if (!visibleIds.has(peak.properties.rangeId)) continue;
+    const [longitude, latitude] = (peak.geometry as GeoJSON.Point).coordinates as [number, number];
+    const [x, y] = projectCoordinate(longitude, latitude, width, height);
+    const point = document.createElementNS(svg.namespaceURI, 'circle');
+    point.setAttribute('cx', String(x));
+    point.setAttribute('cy', String(y));
+    point.setAttribute('r', '5');
+    point.setAttribute('class', 'fallback-peak');
+    point.setAttribute('tabindex', '0');
+    point.setAttribute('aria-label', `View ${peak.properties.name}`);
+    point.addEventListener('click', () => selectRange(peak.properties.rangeId, true));
+    svg.append(point);
+  }
+  mapContainer.append(svg);
+}
+
+function geometryPath(geometry: GeoJSON.Geometry, width: number, height: number): string {
+  if (geometry.type === 'Polygon') return polygonPath(geometry.coordinates, width, height);
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.map((polygon) => polygonPath(polygon, width, height)).join('');
+  return '';
+}
+
+function polygonPath(coordinates: number[][][], width: number, height: number): string {
+  return coordinates.map((ring) => ring.map(([longitude, latitude], index) => {
+    const [x, y] = projectCoordinate(longitude, latitude, width, height);
+    return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join('') + 'Z').join('');
+}
+
+function projectCoordinate(longitude: number, latitude: number, width: number, height: number): [number, number] {
+  return [((longitude + 180) / 360) * width, ((90 - latitude) / 180) * height];
+}
+
+function supportsWebGl2(): boolean {
+  const canvas = document.createElement('canvas');
+  return Boolean(canvas.getContext('webgl2'));
 }
 
 function rangeIdFilter(ids: string[]): FilterSpecification {
